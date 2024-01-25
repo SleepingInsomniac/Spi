@@ -1,0 +1,9 @@
+name: Spi.cr
+version: 0.1.0
+
+authors:
+  - Alex Clink <alexclink@gmail.com>
+
+crystal: '>= 1.11.2'
+
+license: MIT
