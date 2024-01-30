@@ -1,7 +1,7 @@
 require "./ioctl"
 
 module Spi
-  VERSION = "0.1.0"
+  VERSION = {{ `shards version #{__DIR__}`.chomp.stringify }}
 
   lib Lib
     struct IocTransfer
@@ -111,19 +111,20 @@ module Spi
       IOCTL.ioctl(@file.fd, IOC_WR_MAX_SPEED_HZ, pointerof(value))
     end
 
-    def send(buffer : Slice)
-      transfer(buffer, nil)
+    def send(buffer : Slice, delay_usecs : UInt16?)
+      transfer(buffer, nil, delay_usecs)
     end
 
-    def receive(buffer : Slice)
-      transfer(nil, buffer)
+    def receive(buffer : Slice, delay_usecs : UInt16?)
+      transfer(nil, buffer, delay_usecs)
     end
 
-    def transfer(send : Slice? | Pointer, recv : Slice?)
+    def transfer(send : Slice? | Pointer, recv : Slice?, delay_usecs : UInt16?)
       tf = Spi::Lib::IocTransfer.new
 
       tf.tx_buf = send.to_unsafe.as(Void*) if send
       tf.rx_buf = recv.to_unsafe.as(Void*) if recv
+      delay_usecs.try { |us| tf.delay_usecs = us }
 
       len = {send.try(&.bytesize) || 0, recv.try(&.bytesize) || 0}.max
       tf.len = len
